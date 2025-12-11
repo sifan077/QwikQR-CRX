@@ -1,101 +1,78 @@
 <div align="center">
-    <img src="https://raw.githubusercontent.com/SimGus/chrome-addon-v3-starter/master/logo/logo-128.png"/>
-    <h1>Chrome Extension v3 Starter</h1>
-    <h3>A minimal template of a Chrome v3 addon</h3>
+    <img src="https://github.com/sifan077/QwikQR-CRX/blob/master/logo/logo-128.png"/>
+    <h1>📸 QwikQR - Chrome QR Code Extension</h1>
+    <p>一个简单的 Chrome 扩展，让二维码生成和识别变得简单快捷</p>
 </div>
 
-This repository contains a minimal Chrome/Chromium extension that uses the newest version of the manifest (v3).
+## ✨ 功能特色
 
-You can use it as a basis to develop an extension.
-It can also give you more insights about how to turn a v2 extension to v3.
+- **🔗 URL 二维码生成** - 将当前网页链接快速转换为二维码
+- **📝 文本二维码生成** - 输入任意文本内容生成二维码
+- **📤 链接/文本二维码生成** - 右键菜单快速生成选中内容的二维码
+- **📥 二维码识别** - 从图片中提取和解析二维码内容
+- **💾 下载功能** - 保存生成的二维码为 PNG 图片
+- **📋 复制功能** - 复制二维码图片到剪贴板
+- **🌐 支持无协议URL** - 识别如 `www.baidu.com` 等常见域名格式
+- **📱 实时生成** - 输入内容时实时生成二维码
 
-In other words, this is a **working, installable v3 extension** example meant for you to **jumpstart** the development of your own extension.
+## 🚀 安装指南
 
+- **Fork** 这个仓库，然后 **克隆你分叉的仓库到本地**。如果你没有 GitHub 账号，可以直接下载仓库的 zip 文件并解压到你的电脑上。
+- **打开 [扩展程序页面](chrome://extensions)** 在你的浏览器中：`chrome://extensions`。这个链接在任何基于 Chromium 的浏览器中都有效。
+- 如果你还没有开启，**打开 "开发者模式"**。这通常是在扩展页面右上角的一个切换按钮。
+- 点击 **_加载已解压的扩展程序_** 按钮。
+- 在弹出的窗口中，**选择包含此扩展的文件夹**，然后 **点击 _确定_**。
+- **完成！** 一个名为 _QwikQR_ 的新扩展应该出现在列表中。
 
-## Installation
-- **Fork** this repo, then **clone your forked repo locally**. If you don't have a github account, you can simply download a zip of the repo and unzip it on your computer.
-- **Open [the extensions page](chrome://extensions)** in your browser: `chrome://extensions`. This link works on any chromium-based browser.
-- If you did not do it already, **toggle the "developer mode"**. This is usually a toggle button at the top right of the extensions page.
-- Click the button **_load unpacked extension_**.
-- In the window that pops up, **select the folder that contains this minimal extension**, then **click _ok_**.
-- **Done!** A new extension called _Chrome Addon v3 Starter_ should have appeared in the list.
+## 🎯 使用方法
 
-## Q&A
-> Does this work only on Chrome or on **other web browsers** as well?
+### 生成二维码
+1. 点击浏览器工具栏中的 QwikQR 图标
+2. 在弹出的界面中：
+   - 默认显示当前网页的 URL，已生成二维码
+   - 或者输入自定义内容到文本框，二维码会实时生成
+   - 右键选中文本或链接，选择 "生成二维码" 选项
 
-At the moment, this works on every chromium-based web browser that supports v3 extensions.
-Therefore, you should be able to install this extension on any of the following browsers (as long as they are up-to-date):
-- _Free and open-source browsers_:
-    - Chromium
-    - Brave
-- _Proprietary browsers_:
-    - Chrome
-    - Edge
-    - Vivaldi
-    - Opera
+### 识别二维码
+1. 右键点击包含二维码的图片
+2. 选择 "识别二维码" 选项
+3. 扩展会自动识别二维码内容并显示操作选项
 
-> So it doesn't work on **Firefox** or **Safari**?
+## 📋 支持的二维码类型
 
-No, Firefox uses a different extension format. That being said, it is usually not too hard to port extensions from Chrome to Firefox.
-Read [their porting documentation](https://extensionworkshop.com/documentation/develop/porting-a-google-chrome-extension/) for more information.
+- 网页链接（支持带/不带协议的 URL）
+- 纯文本内容
+- 邮箱地址
 
-Safari uses yet another extension format and porting is usually harder.
-You can find more information [here](https://bartsolutions.github.io/2020/11/20/safari-extension/).
+## 🚧 TODO 功能（计划中）
 
-> Does this work on **Chrome for Android/iOS**?
+- **📷 截图功能** - 添加屏幕截图功能以识别任意区域的二维码
+- **🔧 自定义设置** - 允许用户自定义二维码颜色和大小等参数
+- **📧 邮箱二维码** - 生成邮箱地址的二维码
+- **📞 电话二维码** - 生成电话号码的二维码
+- **📋 历史记录** - 保存生成的二维码历史记录
+- **🔍 批量识别** - 一次性识别多张图片中的二维码
+- **🎨 主题定制** - 提供深色模式和其他主题选项
+- **📤 分享功能** - 直接分享生成的二维码
+- **🔍 更精确的识别** - 改进二维码识别算法的准确性
 
-Chrome for mobile doesn't currently support extensions.
+## 🛠 技术特性
 
-> I don't need a **popup tool** for my extension! Can I remove it?
+- **Manifest V3** - 使用最新的 Chrome 扩展规范
+- **现代化 UI** - 美观且用户友好的界面设计
+- **高效算法** - 快速的二维码生成和识别
+- **安全可靠** - 本地处理，不上传任何数据
 
-Yes, simply delete the `popup` folder and remove the `default_popup` property from the manifest.
+## 🤝 贡献
 
-> I changed some code in the extension, but my **changes aren't taken into account**!
+欢迎提交 Issue 和 Pull Request 来帮助改进这个项目！
 
-For most of the changes you make, you will need to reload your extension for the changes to be applied.
-To do that, go to the chrome://extensions page and click the reload button of your extension.
-Note that most of the changes you will make to the settings page or the popup don't require reloading the extension.
+## 📄 许可证
 
-> Can I follow a **tutorial about a v2 extension** with this?
+此项目基于 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件了解详情。
 
-Most of what you will find in those tutorials still holds with v3.
+## 🙏 鸣谢
 
-However, a few things (notably best practices) have changed.
-You should read the [official migration page (v2 to v3)](https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/) before following such a tutorial.
+感谢 [jsQR](https://github.com/cozmo/jsQR) 库提供的二维码识别能力，以及 [qrcode.js](https://github.com/davidshimjs/qrcodejs) 库的二维码生成功能。
 
-> When I make an erroneous change in my service worker, the extension doesn't load! How can I **debug a service worker**?
-
-Using the debugger if your service worker is not loaded is not possible.
-
-However, if you want to test some piece of code before putting it in your service worker, you can:
-- load your extension with a working version of the service worker.
-- click on "service worker" on the page _chrome://extensions_. This will open the console attached to the service worker.
-- paste your code in the console and see if any error is logged.
-
-Note that in this console, you have access to anything your service worker has access to, including its variables, functions and chrome APIs.
-
-> How do I **uninstall** this extension from my browser?
-
-- Go to the [extensions page](chrome://extensions): chrome://extensions.
-  There should be a card with the name of this extension as title.
-  If you don't see such a card, it means the extension is not installed.
-- Simply click the _Delete_ button at the bottom of the card. Click _ok_ if a popup asks you for confirmation. The extension is now uninstalled.
-
-> I want to **push my changes to my own repo**, how do I do this?
-
-- If you forked this repo and cloned your own fork locally, git will push to your fork on your account automatically (i.e. use the command `git push` or `git push origin <your-branch>`).
-
-- If you downloaded a zip or simply cloned this repo locally, do the following:
-    - Create a github account if you don't already have one and install git on your machine.
-    - Create a new (empty) repo on your github and copy its url.
-    - Open a terminal in the folder where the extension is cloned.
-    - Run the command `git init`, then `git commit -am "Initial commit"`
-    - Run the command `git remote add origin <url-of-your-repo>`
-    - Run `git push -u origin master`. The extension code is now on your repo, on brnach _master_.
-    - If you want, you can make the _master_ branch the default one and delete the _main_ branch in the settings of your repo.
-
-## External resources
-- [Official feature summary for manifest v3](https://developer.chrome.com/docs/extensions/mv3/intro/mv3-overview/)
-- [Migrating from v2 to v3](https://developer.chrome.com/docs/extensions/mv3/intro/mv3-migration/) + [very useful checklist once you think you are done](https://developer.chrome.com/docs/extensions/mv3/mv3-migration-checklist/)
-- [Excellent write-ups of a migration](https://github.com/kentbrew/learning-manifest-v3)
-- [Another example of a v3 extension (older code)](https://gist.github.com/dotproto/3a328d6b187621b445499ba503599dc0)
+</div>
