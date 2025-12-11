@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "SnapQR",
-    "description": "A chrome extension to snap QR codes",
+    "name": "QwikQR",
+    "description": "A chrome extension to generate and scan QR codes",
     "version": "0.0.1",
     "icons": {
         "16": "logo/logo-16.png",
@@ -10,14 +10,15 @@
     },
     "options_page": "settings/settings.html",
     "action": {
-        "default_title": "SnapQR",
+        "default_title": "QwikQR",
         "default_popup": "popup/popup.html"
     },
     "permissions": [
         "activeTab",
         "contextMenus",
         "storage",
-        "clipboardWrite"
+        "clipboardWrite",
+        "scripting"
     ],
     "host_permissions": [
         "*://*/*"
@@ -27,10 +28,10 @@
     },
     "content_scripts": [{
         "js": ["foreground.js"],
-        "matches": ["https://github.com/*"]
+        "matches": ["<all_urls>"]
     }],
     "web_accessible_resources": [{
-        "resources": ["popup/qrcode.min.js"],
+        "resources": ["popup/qrcode.min.js", "popup/jsQR.min.js"],
         "matches": ["<all_urls>"]
     }]
 }

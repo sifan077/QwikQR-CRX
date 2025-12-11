@@ -19,6 +19,13 @@ chrome.runtime.onInstalled.addListener(() => {
     title: '生成二维码',
     contexts: ['selection', 'link']
   });
+  
+  // 创建右键菜单项 - 用于识别图片中的二维码
+  chrome.contextMenus.create({
+    id: 'decodeQRFromImage',
+    title: '识别二维码',
+    contexts: ['image']
+  });
 });
 
 // 处理右键菜单点击事件
@@ -38,5 +45,39 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         chrome.action.openPopup();
       });
     }
+  } else if (info.menuItemId === 'decodeQRFromImage') {
+    // 注入jsQR库和内容脚本
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['popup/jsQR.min.js', 'foreground.js']
+    }).then(() => {
+      // 延迟发送消息，确保脚本已加载
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'decodeQR',
+          imageUrl: info.srcUrl
+        });
+      }, 500);
+    }).catch(error => {
+      console.error('注入脚本失败:', error);
+      // 向内容脚本发送消息以执行二维码识别
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'decodeQR',
+        imageUrl: info.srcUrl
+      }).catch(() => {
+        // 如果失败，尝试重新注入
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['popup/jsQR.min.js', 'foreground.js']
+        }).then(() => {
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'decodeQR',
+              imageUrl: info.srcUrl
+            });
+          }, 500);
+        });
+      });
+    });
   }
 });
