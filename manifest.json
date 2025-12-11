@@ -16,7 +16,8 @@
     "permissions": [
         "activeTab",
         "contextMenus",
-        "storage"
+        "storage",
+        "clipboardWrite"
     ],
     "host_permissions": [
         "*://*/*"
