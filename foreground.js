@@ -75,13 +75,26 @@ async function decodeQRFromImage(imageUrl) {
             </div>
           `;
           
-          // 检查识别结果是否为有效URL
+          // 检查识别结果是否为有效URL（支持带协议和不带协议的URL）
           let isValidUrl = false;
           try {
+            // 首先尝试直接解析原始URL
             new URL(code.data);
             isValidUrl = true;
           } catch (e) {
-            isValidUrl = false;
+            // 如果原始URL解析失败，检查是否符合域名格式，然后尝试添加http://前缀
+            // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
+            const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+            if (domainRegex.test(code.data)) {
+              try {
+                new URL('http://' + code.data);
+                isValidUrl = true;
+              } catch (e2) {
+                isValidUrl = false;
+              }
+            } else {
+              isValidUrl = false;
+            }
           }
           
           // 显示操作按钮
@@ -147,7 +160,19 @@ async function decodeQRFromImage(imageUrl) {
           if (isValidUrl) {
             openLinkBtn.onclick = function() {
               try {
-                const url = new URL(code.data);
+                let url;
+                // 尝试直接解析原始URL，如果失败则先检查域名格式再添加http://前缀
+                try {
+                  url = new URL(code.data);
+                } catch (e) {
+                  // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
+                  const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+                  if (domainRegex.test(code.data)) {
+                    url = new URL('http://' + code.data);
+                  } else {
+                    throw new Error('Invalid URL format');
+                  }
+                }
                 // 在新标签页中打开链接
                 window.open(url.href, '_blank');
               } catch (e) {
