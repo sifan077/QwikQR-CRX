@@ -13,7 +13,9 @@
         "default_title": "SnapQR",
         "default_popup": "popup/popup.html"
     },
-    "permissions": [],
+    "permissions": [
+        "activeTab"
+    ],
     "host_permissions": [
         "*://*/*"
     ],

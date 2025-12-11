@@ -7,6 +7,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化显示占位符
     showPlaceholder();
 
+    // 获取当前标签页的URL并填充到输入框
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if (tabs && tabs[0] && tabs[0].url) {
+            const currentUrl = tabs[0].url;
+            textInput.value = currentUrl;
+            // 清除之前的二维码或占位符
+            qrcodeDiv.innerHTML = '';
+            // 生成当前URL的二维码
+            qrcode = new QRCode(qrcodeDiv, {
+                text: currentUrl,
+                width: 180,
+                height: 180,
+                colorDark: '#000000',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    });
+
     generateBtn.addEventListener('click', generateQRCode);
     textInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
