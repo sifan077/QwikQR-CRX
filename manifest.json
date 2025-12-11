@@ -14,7 +14,9 @@
         "default_popup": "popup/popup.html"
     },
     "permissions": [
-        "activeTab"
+        "activeTab",
+        "contextMenus",
+        "storage"
     ],
     "host_permissions": [
         "*://*/*"
