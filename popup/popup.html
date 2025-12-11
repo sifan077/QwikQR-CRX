@@ -3,9 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="popup.css">
-    <title>Chrome Addon v3: popup</title>
+    <title>SnapQR</title>
+    <script src="qrcode.min.js"></script>
 </head>
 <body>
-    This is the <span class="special-text">HTML</span> body of the addon.
+    <div class="container">
+        <div class="input-section">
+            <input type="text" id="text-input" placeholder="输入要生成二维码的内容">
+            <button id="generate-btn">生成二维码</button>
+        </div>
+        <div class="qr-section">
+            <div id="qrcode"></div>
+        </div>
+    </div>
+    <script src="popup.js"></script>
 </body>
 </html>

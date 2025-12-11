@@ -1,8 +1,7 @@
 {
-    // Comments are accepted in the manifest, even though it is JSON.
     "manifest_version": 3,
-    "name": "Chrome Extension v3 Starter",
-    "description": "A minimal example of a chrome extension using manifest v3",
+    "name": "SnapQR",
+    "description": "A chrome extension to snap QR codes",
     "version": "0.0.1",
     "icons": {
         "16": "logo/logo-16.png",
@@ -11,7 +10,7 @@
     },
     "options_page": "settings/settings.html",
     "action": {
-        "default_title": "Chrome Addon v3 Starter",
+        "default_title": "SnapQR",
         "default_popup": "popup/popup.html"
     },
     "permissions": [],
@@ -24,5 +23,9 @@
     "content_scripts": [{
         "js": ["foreground.js"],
         "matches": ["https://github.com/*"]
+    }],
+    "web_accessible_resources": [{
+        "resources": ["popup/qrcode.min.js"],
+        "matches": ["<all_urls>"]
     }]
 }
