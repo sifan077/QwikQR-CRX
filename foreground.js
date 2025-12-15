@@ -102,12 +102,13 @@ async function decodeQRFromImage(imageUrl) {
           
           // 复制内容到剪贴板
           document.getElementById('copyBtn').onclick = function() {
-            const originalText = this.innerHTML;
-            const originalBg = this.style.background;
+            const button = this; // 保存对按钮的引用
+            const originalText = button.innerHTML;
+            const originalBg = button.style.background;
             
             // 临时改变按钮文本为"已复制"，并添加视觉反馈
-            this.innerHTML = '✅ 已复制';
-            this.style.background = '#20c997'; // 绿色反馈
+            button.innerHTML = '✅ 已复制';
+            button.style.background = '#20c997'; // 绿色反馈
             
             navigator.clipboard.writeText(code.data).then(function() {
               // 同时在结果区域显示复制成功的反馈
@@ -123,8 +124,8 @@ async function decodeQRFromImage(imageUrl) {
               
               // 2秒后恢复按钮原始状态
               setTimeout(() => {
-                this.innerHTML = originalText;
-                this.style.background = originalBg;
+                button.innerHTML = originalText;
+                button.style.background = originalBg;
               }, 2000);
               
               // 3秒后恢复原始显示
@@ -134,8 +135,8 @@ async function decodeQRFromImage(imageUrl) {
             }).catch(function(err) {
               console.error('复制失败: ', err);
               // 恢复按钮状态
-              this.innerHTML = originalText;
-              this.style.background = originalBg;
+              button.innerHTML = originalText;
+              button.style.background = originalBg;
               
               // 在结果区域显示复制失败的反馈
               const resultDiv = document.getElementById('result');
@@ -152,7 +153,7 @@ async function decodeQRFromImage(imageUrl) {
               setTimeout(() => {
                 resultDiv.innerHTML = originalResult;
               }, 3000);
-            }.bind(this)); // 使用bind确保错误处理中的this指向正确
+            });
           };
           
           // 设置打开链接按钮状态（如果是有效URL则启用，否则禁用）

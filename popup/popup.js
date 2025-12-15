@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.H
             });
+            // 立即清除存储的右键菜单内容，确保下次打开popup时获取当前标签页URL
+            chrome.storage.local.remove(['contextMenuContent']);
         } else {
             // 否则获取当前标签页的URL并填充到输入框
             chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
