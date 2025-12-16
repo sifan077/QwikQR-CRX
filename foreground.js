@@ -42,67 +42,112 @@ async function decodeQRFromImage(imageUrl) {
   document.body.appendChild(modal);
 
   try {
-    // 使用fetch获取图片blob，避免跨域问题
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
-    const blobUrl = URL.createObjectURL(blob);
+    // 检查是否为SVG图片
+    const isSVG = imageUrl.toLowerCase().includes('.svg') || 
+                  imageUrl.toLowerCase().includes('image/svg+xml');
     
-    const img = document.getElementById('qrImage');
-    img.src = blobUrl;
+    let img, canvas, ctx;
     
-    img.onload = function() {
-      try {
-        // 创建canvas来处理图片
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+    if (isSVG) {
+      // 对于SVG图片，直接使用URL而不转换为blob以避免跨域问题
+      img = document.getElementById('qrImage');
+      img.crossOrigin = 'anonymous'; // 设置crossOrigin以避免跨域问题
+      img.src = imageUrl;
+      
+      // SVG图片加载处理
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      // 创建canvas来处理图片
+      canvas = document.createElement('canvas');
+      ctx = canvas.getContext('2d');
+      
+      // 对于SVG，需要设置明确的尺寸，因为SVG的尺寸可能为0
+      canvas.width = Math.max(img.naturalWidth || 300, 300);
+      canvas.height = Math.max(img.naturalHeight || 300, 300);
+      
+      // 如果SVG的显示尺寸合理，使用显示尺寸
+      if (img.width > 0 && img.height > 0) {
         canvas.width = img.width;
         canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+      }
+      
+      // 清空canvas并设置白色背景（SVG可能透明）
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // 绘制SVG图片到canvas
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    } else {
+      // 对于其他图片类型，使用原来的方法
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      img = document.getElementById('qrImage');
+      img.src = blobUrl;
+      
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      
+      canvas = document.createElement('canvas');
+      ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      // 释放blob URL
+      URL.revokeObjectURL(blobUrl);
+    }
+    
+    // 获取图像数据并识别二维码
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
         
-        // 获取图像数据并识别二维码
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        
-        if (code) {
-          // 更新标题
-          document.getElementById('modalTitle').textContent = '识别成功';
-          
-          const resultDiv = document.getElementById('result');
-          resultDiv.innerHTML = `
-            <div style="width: 100%; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745; text-align: left; margin-bottom: 15px;">
-              <div style="font-weight: 600; color: #555; margin-bottom: 8px;">识别结果:</div>
-              <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
-            </div>
-          `;
-          
-          // 检查识别结果是否为有效URL（支持带协议和不带协议的URL）
-          let isValidUrl = false;
+    if (code) {
+      // 更新标题
+      document.getElementById('modalTitle').textContent = '识别成功';
+      
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = `
+        <div style="width: 100%; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #28a745; text-align: left; margin-bottom: 15px;">
+          <div style="font-weight: 600; color: #555; margin-bottom: 8px;">识别结果:</div>
+          <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
+        </div>
+      `;
+      
+      // 检查识别结果是否为有效URL（支持带协议和不带协议的URL）
+      let isValidUrl = false;
+      try {
+        // 首先尝试直接解析原始URL
+        new URL(code.data);
+        isValidUrl = true;
+      } catch (e) {
+        // 如果原始URL解析失败，检查是否符合域名格式，然后尝试添加http://前缀
+        // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
+        const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+        if (domainRegex.test(code.data)) {
           try {
-            // 首先尝试直接解析原始URL
-            new URL(code.data);
+            new URL('http://' + code.data);
             isValidUrl = true;
-          } catch (e) {
-            // 如果原始URL解析失败，检查是否符合域名格式，然后尝试添加http://前缀
-            // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
-            const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
-            if (domainRegex.test(code.data)) {
-              try {
-                new URL('http://' + code.data);
-                isValidUrl = true;
-              } catch (e2) {
-                isValidUrl = false;
-              }
-            } else {
-              isValidUrl = false;
-            }
+          } catch (e2) {
+            isValidUrl = false;
           }
-          
-          // 显示操作按钮
-          document.getElementById('actionButtons').style.display = 'flex';
-          
-          // 复制内容到剪贴板
-          document.getElementById('copyBtn').onclick = function() {
-            const button = this; // 保存对按钮的引用
+        } else {
+          isValidUrl = false;
+        }
+      }
+      
+      // 显示操作按钮
+      document.getElementById('actionButtons').style.display = 'flex';
+      
+      // 复制内容到剪贴板
+      document.getElementById('copyBtn').onclick = function() {
+        const button = this; // 保存对按钮的引用
             const originalText = button.innerHTML;
             const originalBg = button.style.background;
             
@@ -111,111 +156,95 @@ async function decodeQRFromImage(imageUrl) {
             button.style.background = '#20c997'; // 绿色反馈
             
             navigator.clipboard.writeText(code.data).then(function() {
-              // 同时在结果区域显示复制成功的反馈
-              const resultDiv = document.getElementById('result');
-              const originalResult = resultDiv.innerHTML;
-              resultDiv.innerHTML = `
-                <div style="width: 100%; padding: 15px; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745; text-align: left; margin-bottom: 15px;">
-                  <div style="font-weight: 600; color: #155724; margin-bottom: 8px;">识别结果:</div>
-                  <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
-                </div>
-                <div style="color: #28a745; font-weight: 500; margin-top: 10px;">✅ 内容已复制到剪贴板</div>
-              `;
-              
-              // 2秒后恢复按钮原始状态
-              setTimeout(() => {
-                button.innerHTML = originalText;
-                button.style.background = originalBg;
-              }, 2000);
-              
-              // 3秒后恢复原始显示
-              setTimeout(() => {
-                resultDiv.innerHTML = originalResult;
-              }, 3000);
-            }).catch(function(err) {
-              console.error('复制失败: ', err);
-              // 恢复按钮状态
-              button.innerHTML = originalText;
-              button.style.background = originalBg;
-              
-              // 在结果区域显示复制失败的反馈
-              const resultDiv = document.getElementById('result');
-              const originalResult = resultDiv.innerHTML;
-              resultDiv.innerHTML = `
-                <div style="width: 100%; padding: 15px; background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545; text-align: left; margin-bottom: 15px;">
-                  <div style="font-weight: 600; color: #721c24; margin-bottom: 8px;">识别结果:</div>
-                  <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
-                </div>
-                <div style="color: #dc3545; font-weight: 500; margin-top: 10px;">❌ 复制失败: ${err.message}</div>
-              `;
-              
-              // 3秒后恢复原始显示
-              setTimeout(() => {
-                resultDiv.innerHTML = originalResult;
-              }, 3000);
-            });
-          };
+          // 同时在结果区域显示复制成功的反馈
+          const resultDiv = document.getElementById('result');
+          const originalResult = resultDiv.innerHTML;
+          resultDiv.innerHTML = `
+            <div style="width: 100%; padding: 15px; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745; text-align: left; margin-bottom: 15px;">
+              <div style="font-weight: 600; color: #155724; margin-bottom: 8px;">识别结果:</div>
+              <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
+            </div>
+            <div style="color: #28a745; font-weight: 500; margin-top: 10px;">✅ 内容已复制到剪贴板</div>
+          `;
           
-          // 设置打开链接按钮状态（如果是有效URL则启用，否则禁用）
-          const openLinkBtn = document.getElementById('openLinkBtn');
-          if (isValidUrl) {
-            openLinkBtn.onclick = function() {
-              try {
-                let url;
-                // 尝试直接解析原始URL，如果失败则先检查域名格式再添加http://前缀
-                try {
-                  url = new URL(code.data);
-                } catch (e) {
-                  // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
-                  const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
-                  if (domainRegex.test(code.data)) {
-                    url = new URL('http://' + code.data);
-                  } else {
-                    throw new Error('Invalid URL format');
-                  }
-                }
-                // 在新标签页中打开链接
-                window.open(url.href, '_blank');
-              } catch (e) {
-                console.error('URL格式错误: ', e);
+          // 2秒后恢复按钮原始状态
+          setTimeout(() => {
+            button.innerHTML = originalText;
+            button.style.background = originalBg;
+          }, 2000);
+          
+          // 3秒后恢复原始显示
+          setTimeout(() => {
+            resultDiv.innerHTML = originalResult;
+          }, 3000);
+        }).catch(function(err) {
+          console.error('复制失败: ', err);
+          // 恢复按钮状态
+          button.innerHTML = originalText;
+          button.style.background = originalBg;
+          
+          // 在结果区域显示复制失败的反馈
+          const resultDiv = document.getElementById('result');
+          const originalResult = resultDiv.innerHTML;
+          resultDiv.innerHTML = `
+            <div style="width: 100%; padding: 15px; background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545; text-align: left; margin-bottom: 15px;">
+              <div style="font-weight: 600; color: #721c24; margin-bottom: 8px;">识别结果:</div>
+              <div id="decodedText" style="word-break: break-all; font-family: monospace; font-size: 14px; color: #333; line-height: 1.4;">${code.data}</div>
+            </div>
+            <div style="color: #dc3545; font-weight: 500; margin-top: 10px;">❌ 复制失败: ${err.message}</div>
+          `;
+          
+          // 3秒后恢复原始显示
+          setTimeout(() => {
+            resultDiv.innerHTML = originalResult;
+          }, 3000);
+        });
+      };
+      
+      // 设置打开链接按钮状态（如果是有效URL则启用，否则禁用）
+      const openLinkBtn = document.getElementById('openLinkBtn');
+      if (isValidUrl) {
+        openLinkBtn.onclick = function() {
+          try {
+            let url;
+            // 尝试直接解析原始URL，如果失败则先检查域名格式再添加http://前缀
+            try {
+              url = new URL(code.data);
+            } catch (e) {
+              // 域名格式检查：至少包含一个点（表示有顶级域名），且每个部分符合域名规则
+              const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+              if (domainRegex.test(code.data)) {
+                url = new URL('http://' + code.data);
+              } else {
+                throw new Error('Invalid URL format');
               }
-            };
-            // 启用按钮并设置正常样式
-            openLinkBtn.disabled = false;
-            openLinkBtn.style.opacity = '1';
-            openLinkBtn.style.cursor = 'pointer';
-            openLinkBtn.title = '打开链接';
-          } else {
-            // 禁用按钮并设置禁用样式
-            openLinkBtn.disabled = true;
-            openLinkBtn.style.opacity = '0.5';
-            openLinkBtn.style.cursor = 'not-allowed';
-            openLinkBtn.title = '识别结果不是有效的URL，无法打开';
+            }
+            // 在新标签页中打开链接
+            window.open(url.href, '_blank');
+          } catch (e) {
+            console.error('URL格式错误: ', e);
           }
-          
-          // 为用户提供一个自动关闭选项，如果他们没有采取任何操作
-          // 设定5秒后可选择自动关闭，但只在用户没有操作的情况下
-        } else {
-          document.getElementById('modalTitle').textContent = '识别失败';
-          document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">未能识别出二维码，请确保图片清晰且包含二维码</p>';
-        }
-      } catch (error) {
-        document.getElementById('modalTitle').textContent = '识别失败';
-        document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">识别失败: ' + error.message + '</p>';
-      } finally {
-        // 释放blob URL
-        URL.revokeObjectURL(blobUrl);
+        };
+        // 启用按钮并设置正常样式
+        openLinkBtn.disabled = false;
+        openLinkBtn.style.opacity = '1';
+        openLinkBtn.style.cursor = 'pointer';
+        openLinkBtn.title = '打开链接';
+      } else {
+        // 禁用按钮并设置禁用样式
+        openLinkBtn.disabled = true;
+        openLinkBtn.style.opacity = '0.5';
+        openLinkBtn.style.cursor = 'not-allowed';
+        openLinkBtn.title = '识别结果不是有效的URL，无法打开';
       }
-    };
-    
-    img.onerror = function() {
-      document.getElementById('modalTitle').textContent = '加载失败';
-      document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">无法加载图片</p>';
-      URL.revokeObjectURL(blobUrl);
-    };
+      
+    } else {
+      document.getElementById('modalTitle').textContent = '识别失败';
+      document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">未能识别出二维码，请确保图片清晰且包含二维码</p>';
+    }
   } catch (error) {
-    document.getElementById('modalTitle').textContent = '加载失败';
-    document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">加载图片失败: ' + error.message + '</p>';
+    document.getElementById('modalTitle').textContent = '识别失败';
+    document.getElementById('result').innerHTML = '<p style="color: #dc3545; font-weight: 500;">识别失败: ' + error.message + '</p>';
   }
 
   // 关闭按钮事件

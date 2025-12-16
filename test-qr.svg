@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <!-- 这是一个包含测试二维码数据的SVG -->
+  <!-- 实际情况下，这里应该是一个真正的二维码图像 -->
+  <rect width="200" height="200" fill="white"/>
+  <!-- 模拟二维码图案（简化版本） -->
+  <rect x="10" y="10" width="20" height="20" fill="black"/>
+  <rect x="40" y="10" width="20" height="20" fill="black"/>
+  <rect x="70" y="10" width="20" height="20" fill="black"/>
+  <rect x="100" y="10" width="20" height="20" fill="black"/>
+  <rect x="130" y="10" width="20" height="20" fill="black"/>
+  <rect x="160" y="10" width="20" height="20" fill="black"/>
+  
+  <rect x="10" y="40" width="20" height="20" fill="black"/>
+  <rect x="160" y="40" width="20" height="20" fill="black"/>
+  
+  <rect x="10" y="70" width="20" height="20" fill="black"/>
+  <rect x="40" y="70" width="20" height="20" fill="black"/>
+  <rect x="70" y="70" width="20" height="20" fill="black"/>
+  <rect x="100" y="70" width="20" height="20" fill="black"/>
+  <rect x="130" y="70" width="20" height="20" fill="black"/>
+  <rect x="160" y="70" width="20" height="20" fill="black"/>
+  
+  <rect x="10" y="100" width="20" height="20" fill="black"/>
+  <rect x="160" y="100" width="20" height="20" fill="black"/>
+  
+  <!-- 中心数据区域 - 这里包含实际的二维码数据 -->
+  <rect x="10" y="130" width="20" height="20" fill="black"/>
+  <rect x="40" y="130" width="20" height="20" fill="black"/>
+  <rect x="70" y="130" width="20" height="20" fill="black"/>
+  <rect x="100" y="130" width="20" height="20" fill="black"/>
+  <rect x="130" y="130" width="20" height="20" fill="black"/>
+  <rect x="160" y="130" width="20" height="20" fill="black"/>
+  
+  <rect x="10" y="160" width="20" height="20" fill="black"/>
+  <rect x="160" y="160" width="20" height="20" fill="black"/>
+  
+  <rect x="10" y="170" width="20" height="20" fill="black"/>
+  <rect x="40" y="170" width="20" height="20" fill="black"/>
+  <rect x="70" y="170" width="20" height="20" fill="black"/>
+  <rect x="100" y="170" width="20" height="20" fill="black"/>
+  <rect x="130" y="170" width="20" height="20" fill="black"/>
+  <rect x="160" y="170" width="20" height="20" fill="black"/>
+  
+  <!-- 添加文本说明这不是真正的二维码 -->
+  <text x="100" y="195" text-anchor="middle" font-family="Arial" font-size="10" fill="red">
+    测试SVG文件 - 包含二维码数据: https://example.com/test
+  </text>
+</svg>
