@@ -26,6 +26,13 @@ chrome.runtime.onInstalled.addListener(() => {
     title: '识别二维码',
     contexts: ['image']
   });
+  
+  // 创建右键菜单项 - 用于截图识别二维码
+  chrome.contextMenus.create({
+    id: 'captureAndDecodeQR',
+    title: '截图识别二维码',
+    contexts: ['all']
+  });
 });
 
 // 处理右键菜单点击事件
@@ -79,5 +86,90 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         });
       });
     });
+  } else if (info.menuItemId === 'captureAndDecodeQR') {
+    // 注入jsQR库和内容脚本
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ['popup/jsQR.min.js', 'foreground.js']
+    }).then(() => {
+      // 发送消息触发截图功能
+      setTimeout(() => {
+        chrome.tabs.sendMessage(tab.id, {
+          action: 'captureAndDecode'
+        });
+      }, 500);
+    }).catch(error => {
+      console.error('注入脚本失败:', error);
+      chrome.tabs.sendMessage(tab.id, {
+        action: 'captureAndDecode'
+      }).catch(() => {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          files: ['popup/jsQR.min.js', 'foreground.js']
+        }).then(() => {
+          setTimeout(() => {
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'captureAndDecode'
+            });
+          }, 500);
+        });
+      });
+    });
+  }
+});
+
+// 处理来自 content script 的截图请求
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'captureAndDecode' && request.selection) {
+    const { left, top, width, height } = request.selection;
+    const tabId = sender.tab ? sender.tab.id : null;
+    
+    // 获取当前活动标签页
+    chrome.tabs.query({active: true, currentWindow: true}, async (tabs) => {
+      try {
+        if (!tabs || !tabs[0]) {
+          sendResponse({ success: false, error: '无法获取当前标签页' });
+          return;
+        }
+        
+        // 使用 captureVisibleTab 获取截图
+        const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+        
+        // 获取标签页的缩放比例
+        let zoom = 1;
+        if (tabId) {
+          try {
+            zoom = await chrome.tabs.getZoom(tabId);
+          } catch (e) {
+            console.error('获取缩放比例失败:', e);
+            zoom = 1;
+          }
+        }
+        
+        // 计算缩放后的坐标（只考虑标签页缩放，不考虑设备像素比）
+        const scaledWidth = width * zoom;
+        const scaledHeight = height * zoom;
+        const scaledLeft = left * zoom;
+        const scaledTop = top * zoom;
+        
+        // 将截图数据发送回 content script
+        sendResponse({
+          success: true,
+          dataUrl: dataUrl,
+          selection: {
+            left: scaledLeft,
+            top: scaledTop,
+            width: scaledWidth,
+            height: scaledHeight
+          }
+        });
+      } catch (error) {
+        console.error('截图失败:', error);
+        sendResponse({ success: false, error: error.message });
+      }
+    });
+    
+    // 返回 true 表示异步响应
+    return true;
   }
 });

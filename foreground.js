@@ -240,5 +240,388 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'decodeQR') {
     decodeQRFromImage(request.imageUrl);
     sendResponse({status: 'success'});
+  } else if (request.action === 'captureAndDecode') {
+    captureAndDecodeQR();
+    sendResponse({status: 'success'});
   }
 });
+
+// 截图识别二维码功能
+function captureAndDecodeQR() {
+  // 创建覆盖层
+  const overlay = document.createElement('div');
+  overlay.id = 'qrCaptureOverlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 2147483647;
+    cursor: crosshair;
+    user-select: none;
+  `;
+
+  // 创建选择框
+  const selectionBox = document.createElement('div');
+  selectionBox.id = 'qrSelectionBox';
+  selectionBox.style.cssText = `
+    position: absolute;
+    border: 2px dashed #ff0000;
+    background: rgba(255, 0, 0, 0.1);
+    display: none;
+    pointer-events: none;
+  `;
+
+  // 创建提示文本
+  const hint = document.createElement('div');
+  hint.id = 'qrCaptureHint';
+  hint.textContent = '按住鼠标左键拖动选择二维码区域，按 ESC 取消';
+  hint.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    z-index: 2147483648;
+    pointer-events: none;
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.appendChild(selectionBox);
+  document.body.appendChild(hint);
+
+  let isSelecting = false;
+  let startX, startY, endX, endY;
+
+  // 鼠标按下事件
+  overlay.addEventListener('mousedown', (e) => {
+    isSelecting = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    
+    selectionBox.style.left = startX + 'px';
+    selectionBox.style.top = startY + 'px';
+    selectionBox.style.width = '0px';
+    selectionBox.style.height = '0px';
+    selectionBox.style.display = 'block';
+  });
+
+  // 鼠标移动事件
+  overlay.addEventListener('mousemove', (e) => {
+    if (!isSelecting) return;
+    
+    endX = e.clientX;
+    endY = e.clientY;
+    
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
+    const left = Math.min(startX, endX);
+    const top = Math.min(startY, endY);
+    
+    selectionBox.style.left = left + 'px';
+    selectionBox.style.top = top + 'px';
+    selectionBox.style.width = width + 'px';
+    selectionBox.style.height = height + 'px';
+  });
+
+  // 鼠标释放事件
+  overlay.addEventListener('mouseup', async (e) => {
+    if (!isSelecting) return;
+    isSelecting = false;
+    
+    endX = e.clientX;
+    endY = e.clientY;
+    
+    const width = Math.abs(endX - startX);
+    const height = Math.abs(endY - startY);
+    const left = Math.min(startX, endX);
+    const top = Math.min(startY, endY);
+    
+    // 移除覆盖层
+    overlay.remove();
+    selectionBox.remove();
+    hint.remove();
+    
+    // 如果选择区域太小，提示用户
+    if (width < 50 || height < 50) {
+      alert('选择区域太小，请重新选择');
+      return;
+    }
+    
+    // 发送消息给 service worker 进行截图
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: 'captureAndDecode',
+        selection: { left, top, width, height }
+      });
+      
+      if (response && response.success && response.dataUrl) {
+        // 创建图片对象
+        const img = new Image();
+        img.onload = function() {
+          // 创建canvas来裁剪选中的区域
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          const { left: scaledLeft, top: scaledTop, width: scaledWidth, height: scaledHeight } = response.selection;
+          
+          canvas.width = scaledWidth;
+          canvas.height = scaledHeight;
+          
+          // 裁剪选中的区域
+          ctx.drawImage(img, scaledLeft, scaledTop, scaledWidth, scaledHeight, 0, 0, scaledWidth, scaledHeight);
+          
+          // 获取图像数据
+          const imageData = ctx.getImageData(0, 0, scaledWidth, scaledHeight);
+          
+          // 识别二维码
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          if (code && code.data) {
+            // 移除覆盖层和选择框
+            const existingOverlay = document.getElementById('qrCaptureOverlay');
+            const existingSelectionBox = document.getElementById('qrSelectionBox');
+            const existingHint = document.getElementById('qrCaptureHint');
+            if (existingOverlay) existingOverlay.remove();
+            if (existingSelectionBox) existingSelectionBox.remove();
+            if (existingHint) existingHint.remove();
+            
+            // 显示识别结果
+            showDecodeResult(code.data);
+          } else {
+            alert('未能识别出二维码，请确保选择区域包含清晰的二维码');
+          }
+        };
+        
+        img.onerror = function() {
+          alert('加载截图失败');
+        };
+        
+        img.src = response.dataUrl;
+      } else if (response && response.error) {
+        alert('截图识别失败: ' + response.error);
+      } else {
+        alert('未能识别出二维码，请确保选择区域包含清晰的二维码');
+      }
+    } catch (error) {
+      console.error('截图识别失败:', error);
+      alert('截图识别失败: ' + error.message);
+    }
+  });
+
+  // ESC键取消选择
+  const handleEscape = (e) => {
+    if (e.key === 'Escape') {
+      overlay.remove();
+      selectionBox.remove();
+      hint.remove();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  
+  document.addEventListener('keydown', handleEscape);
+}
+
+// 显示识别结果
+function showDecodeResult(decodedText) {
+  // 检查是否已存在结果弹窗，如果存在则先移除
+  const existingModal = document.getElementById('qrResultModal');
+  if (existingModal) {
+    document.body.removeChild(existingModal);
+  }
+
+  // 创建结果弹窗
+  const modal = document.createElement('div');
+  modal.id = 'qrResultModal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2147483647;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 90vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+    ">
+      <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      ">
+        <h3 style="margin: 0; font-size: 20px; color: #333;">✅ 识别成功</h3>
+        <button id="closeResultBtn" style="
+          background: #f8f9fa;
+          border: 1px solid #ddd;
+          border-radius: 50%;
+          width: 36px;
+          height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 18px;
+          color: #666;
+        ">×</button>
+      </div>
+      <div style="
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+        margin-bottom: 20px;
+      ">
+        <div style="font-weight: 600; color: #555; margin-bottom: 8px;">识别结果:</div>
+        <div id="resultText" style="
+          word-break: break-all;
+          font-family: monospace;
+          font-size: 14px;
+          color: #333;
+          line-height: 1.6;
+        ">${decodedText}</div>
+      </div>
+      <div id="actionButtons" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button id="copyResultBtn" style="
+          padding: 12px 24px;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          min-width: 140px;
+          font-weight: 500;
+        ">📋 复制内容</button>
+        <button id="openResultBtn" style="
+          padding: 12px 24px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          min-width: 140px;
+          font-weight: 500;
+        ">🔗 打开链接</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // 检查识别结果是否为有效URL
+  let isValidUrl = false;
+  try {
+    new URL(decodedText);
+    isValidUrl = true;
+  } catch (e) {
+    const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+    if (domainRegex.test(decodedText)) {
+      try {
+        new URL('http://' + decodedText);
+        isValidUrl = true;
+      } catch (e2) {
+        isValidUrl = false;
+      }
+    }
+  }
+
+  // 设置打开链接按钮状态
+  const openResultBtn = document.getElementById('openResultBtn');
+  if (isValidUrl) {
+    openResultBtn.onclick = function() {
+      try {
+        let url;
+        try {
+          url = new URL(decodedText);
+        } catch (e) {
+          const domainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+          if (domainRegex.test(decodedText)) {
+            url = new URL('http://' + decodedText);
+          } else {
+            throw new Error('Invalid URL format');
+          }
+        }
+        window.open(url.href, '_blank');
+      } catch (e) {
+        console.error('URL格式错误: ', e);
+      }
+    };
+    openResultBtn.disabled = false;
+    openResultBtn.style.opacity = '1';
+    openResultBtn.style.cursor = 'pointer';
+  } else {
+    openResultBtn.disabled = true;
+    openResultBtn.style.opacity = '0.5';
+    openResultBtn.style.cursor = 'not-allowed';
+    openResultBtn.title = '识别结果不是有效的URL，无法打开';
+  }
+
+  // 复制内容
+  document.getElementById('copyResultBtn').onclick = function() {
+    const button = this;
+    const originalText = button.innerHTML;
+    const originalBg = button.style.background;
+    
+    button.innerHTML = '✅ 已复制';
+    button.style.background = '#20c997';
+    
+    navigator.clipboard.writeText(decodedText).then(() => {
+      setTimeout(() => {
+        button.innerHTML = originalText;
+        button.style.background = originalBg;
+      }, 2000);
+    }).catch(err => {
+      console.error('复制失败: ', err);
+      button.innerHTML = originalText;
+      button.style.background = originalBg;
+      alert('复制失败: ' + err.message);
+    });
+  };
+
+  // 关闭按钮
+  document.getElementById('closeResultBtn').onclick = function() {
+    if (modal.parentNode) {
+      document.body.removeChild(modal);
+    }
+  };
+
+  // 点击外部关闭
+  modal.onclick = function(e) {
+    if (e.target === modal) {
+      if (modal.parentNode) {
+        document.body.removeChild(modal);
+      }
+    }
+  };
+}
