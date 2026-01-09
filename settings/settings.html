@@ -1,12 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="settings.css">
-    <title>Chrome Addon v3: Settings</title>
+    <title>QwikQR - 设置</title>
 </head>
 <body>
-    This is the <span class="special-text">settings</span> page for the addon.
+    <div class="settings-container">
+        <header class="settings-header">
+            <h1>⚙️ QwikQR 设置</h1>
+            <p class="subtitle">自定义二维码生成和识别选项</p>
+        </header>
+
+        <div class="settings-content">
+            <!-- 二维码生成设置 -->
+            <section class="settings-section">
+                <h2 class="section-title">📱 二维码生成</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label" for="qr-size">
+                        二维码大小
+                        <span class="setting-value" id="qr-size-value">180</span>
+                    </label>
+                    <input type="range" id="qr-size" min="100" max="300" value="180" class="setting-input">
+                    <div class="setting-hint">范围: 100 - 300 像素</div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label" for="qr-color-dark">
+                        前景色（二维码颜色）
+                    </label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="qr-color-dark" value="#000000" class="color-input">
+                        <span class="color-value" id="qr-color-dark-value">#000000</span>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label" for="qr-color-light">
+                        背景色
+                    </label>
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="qr-color-light" value="#ffffff" class="color-input">
+                        <span class="color-value" id="qr-color-light-value">#ffffff</span>
+                    </div>
+                </div>
+
+                <div class="setting-item">
+                    <label class="setting-label" for="qr-correct-level">
+                        纠错等级
+                    </label>
+                    <select id="qr-correct-level" class="setting-select">
+                        <option value="L">L - 低 (7%)</option>
+                        <option value="M">M - 中 (15%)</option>
+                        <option value="Q">Q - 较高 (25%)</option>
+                        <option value="H" selected>H - 高 (30%)</option>
+                    </select>
+                    <div class="setting-hint">纠错等级越高，二维码越能容忍损坏，但码点越多</div>
+                </div>
+            </section>
+
+            <!-- 默认操作设置 -->
+            <section class="settings-section">
+                <h2 class="section-title">⚡ 默认操作</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label" for="default-action">
+                        生成二维码后的默认操作
+                    </label>
+                    <select id="default-action" class="setting-select">
+                        <option value="none">无操作</option>
+                        <option value="copy">复制到剪贴板</option>
+                        <option value="download">下载图片</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- 识别设置 -->
+            <section class="settings-section">
+                <h2 class="section-title">🔍 二维码识别</h2>
+                
+                <div class="setting-item">
+                    <label class="setting-label">
+                        自动识别无协议 URL
+                    </label>
+                    <div class="toggle-switch">
+                        <input type="checkbox" id="auto-detect-url" checked class="toggle-input">
+                        <label for="auto-detect-url" class="toggle-label"></label>
+                    </div>
+                    <div class="setting-hint">自动将 www.example.com 转换为 http://www.example.com</div>
+                </div>
+            </section>
+
+            <!-- 操作按钮 -->
+            <div class="settings-actions">
+                <button id="reset-btn" class="btn btn-secondary">↩️ 恢复默认</button>
+                <button id="save-btn" class="btn btn-primary">💾 保存设置</button>
+            </div>
+        </div>
+
+        <!-- 保存成功提示 -->
+        <div id="toast" class="toast">
+            <span class="toast-icon">✅</span>
+            <span class="toast-message">设置已保存</span>
+        </div>
+    </div>
+
+    <script src="settings.js"></script>
 </body>
 </html>

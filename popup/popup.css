@@ -10,6 +10,35 @@ body {
 
 .container {
     padding: 20px;
+    position: relative;
+}
+
+.settings-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.settings-btn:hover {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.settings-btn:active {
+    background: #e8e8e8;
 }
 
 .input-section {
@@ -45,6 +74,7 @@ body {
     border: 1px solid #eaeaea;
     margin-top: 10px;
     padding: 25px 20px;
+    overflow: auto;
 }
 
 #qrcode {
@@ -54,6 +84,7 @@ body {
     width: 100%;
     height: auto;
     margin-bottom: 20px;
+    max-width: 100%;
 }
 
 .placeholder-container {
@@ -86,6 +117,8 @@ body {
     border-radius: 4px;
     padding: 8px;
     background-color: white;
+    max-width: 100%;
+    height: auto;
 }
 
 .button-section {
