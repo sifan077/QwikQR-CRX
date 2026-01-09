@@ -13,7 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
         qrColorDark: '#000000',
         qrColorLight: '#ffffff',
         qrCorrectLevel: 'H',
-        defaultAction: 'none'
+        defaultAction: 'none',
+        logoImage: null,
+        logoSize: 20
     };
 
     // 当前设置
@@ -146,6 +148,17 @@ document.addEventListener('DOMContentLoaded', function() {
             correctLevel: correctLevelMap[settings.qrCorrectLevel] || QRCode.CorrectLevel.H
         });
 
+        // 如果有 Logo 图片，添加到二维码中心
+        if (settings.logoImage) {
+            // 等待二维码生成完成
+            setTimeout(() => {
+                const qrImg = qrcodeDiv.querySelector('img');
+                if (qrImg) {
+                    addLogoToQRCode(qrImg, settings.logoImage, settings.logoSize);
+                }
+            }, 100);
+        }
+
         // 执行默认操作
         if (text !== undefined && settings.defaultAction !== 'none') {
             setTimeout(() => {
@@ -156,6 +169,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 500);
         }
+    }
+
+    // 在二维码中心添加 Logo
+    function addLogoToQRCode(qrImg, logoData, logoSizePercent) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = qrImg.width;
+        canvas.height = qrImg.height;
+        
+        // 绘制二维码
+        ctx.drawImage(qrImg, 0, 0);
+        
+        // 计算 Logo 大小
+        const logoSize = canvas.width * (logoSizePercent / 100);
+        const logoX = (canvas.width - logoSize) / 2;
+        const logoY = (canvas.height - logoSize) / 2;
+        
+        // 创建 Logo 图片
+        const logoImg = new Image();
+        logoImg.onload = function() {
+            // 绘制白色背景（可选，为了让 Logo 更清晰）
+            ctx.fillStyle = settings.qrColorLight;
+            ctx.fillRect(logoX - 2, logoY - 2, logoSize + 4, logoSize + 4);
+            
+            // 绘制 Logo
+            ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize);
+            
+            // 替换原来的二维码图片
+            const finalDataUrl = canvas.toDataURL('image/png');
+            qrImg.src = finalDataUrl;
+        };
+        logoImg.src = logoData;
     }
 
     function showPlaceholder() {

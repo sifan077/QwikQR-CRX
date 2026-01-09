@@ -5,7 +5,9 @@ const defaultSettings = {
     qrColorLight: '#ffffff',
     qrCorrectLevel: 'H',
     defaultAction: 'none',
-    autoDetectUrl: true
+    autoDetectUrl: true,
+    logoImage: null,
+    logoSize: 20
 };
 
 // 当前设置
@@ -22,6 +24,14 @@ const elements = {
     qrCorrectLevel: document.getElementById('qr-correct-level'),
     defaultAction: document.getElementById('default-action'),
     autoDetectUrl: document.getElementById('auto-detect-url'),
+    logoUpload: document.getElementById('logo-upload'),
+    logoUploadBtn: document.getElementById('logo-upload-btn'),
+    logoPreview: document.getElementById('logo-preview'),
+    logoPreviewImg: document.getElementById('logo-preview-img'),
+    logoRemoveBtn: document.getElementById('logo-remove-btn'),
+    logoSize: document.getElementById('logo-size'),
+    logoSizeValue: document.getElementById('logo-size-value'),
+    logoSizeSetting: document.getElementById('logo-size-setting'),
     saveBtn: document.getElementById('save-btn'),
     resetBtn: document.getElementById('reset-btn'),
     toast: document.getElementById('toast')
@@ -59,6 +69,20 @@ function updateUI() {
     elements.defaultAction.value = currentSettings.defaultAction;
     
     elements.autoDetectUrl.checked = currentSettings.autoDetectUrl;
+
+    // Logo 图片
+    if (currentSettings.logoImage) {
+        elements.logoPreviewImg.src = currentSettings.logoImage;
+        elements.logoPreview.style.display = 'inline-block';
+        elements.logoUploadBtn.style.display = 'none';
+        elements.logoSizeSetting.style.display = 'block';
+        elements.logoSize.value = currentSettings.logoSize;
+        elements.logoSizeValue.textContent = currentSettings.logoSize + '%';
+    } else {
+        elements.logoPreview.style.display = 'none';
+        elements.logoUploadBtn.style.display = 'flex';
+        elements.logoSizeSetting.style.display = 'none';
+    }
 }
 
 // 设置事件监听器
@@ -78,6 +102,49 @@ function setupEventListeners() {
         elements.qrColorLightValue.textContent = this.value;
     });
 
+    // Logo 上传按钮点击
+    elements.logoUploadBtn.addEventListener('click', function() {
+        elements.logoUpload.click();
+    });
+
+    // Logo 文件选择
+    elements.logoUpload.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // 验证文件类型
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件');
+                return;
+            }
+
+            // 验证文件大小（最大 500KB）
+            if (file.size > 500 * 1024) {
+                alert('图片大小不能超过 500KB');
+                return;
+            }
+
+            // 读取文件
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentSettings.logoImage = e.target.result;
+                updateUI();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Logo 删除按钮
+    elements.logoRemoveBtn.addEventListener('click', function() {
+        currentSettings.logoImage = null;
+        elements.logoUpload.value = '';
+        updateUI();
+    });
+
+    // Logo 大小滑块
+    elements.logoSize.addEventListener('input', function() {
+        elements.logoSizeValue.textContent = this.value + '%';
+    });
+
     // 保存按钮
     elements.saveBtn.addEventListener('click', saveSettings);
 
@@ -93,7 +160,9 @@ function saveSettings() {
         qrColorLight: elements.qrColorLight.value,
         qrCorrectLevel: elements.qrCorrectLevel.value,
         defaultAction: elements.defaultAction.value,
-        autoDetectUrl: elements.autoDetectUrl.checked
+        autoDetectUrl: elements.autoDetectUrl.checked,
+        logoImage: currentSettings.logoImage,
+        logoSize: parseInt(elements.logoSize.value)
     };
 
     chrome.storage.local.set({ qrSettings: currentSettings }, function() {
