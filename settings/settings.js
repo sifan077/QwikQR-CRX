@@ -34,14 +34,25 @@ const elements = {
     logoSizeSetting: document.getElementById('logo-size-setting'),
     saveBtn: document.getElementById('save-btn'),
     resetBtn: document.getElementById('reset-btn'),
-    toast: document.getElementById('toast')
+    toast: document.getElementById('toast'),
+    historyCount: document.getElementById('history-count'),
+    clearHistorySettingsBtn: document.getElementById('clear-history-settings-btn')
 };
 
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
     loadSettings();
+    loadHistoryCount();
     setupEventListeners();
 });
+
+// 加载历史记录数量
+function loadHistoryCount() {
+    chrome.storage.local.get(['qrHistory'], function(result) {
+        const history = result.qrHistory || [];
+        elements.historyCount.textContent = history.length;
+    });
+}
 
 // 加载设置
 function loadSettings() {
@@ -150,6 +161,16 @@ function setupEventListeners() {
 
     // 恢复默认按钮
     elements.resetBtn.addEventListener('click', resetSettings);
+
+    // 清除历史记录按钮
+    elements.clearHistorySettingsBtn.addEventListener('click', function() {
+        if (confirm('确定要清除所有历史记录吗？此操作不可撤销。')) {
+            chrome.storage.local.remove(['qrHistory'], function() {
+                loadHistoryCount();
+                showToast('历史记录已清除');
+            });
+        }
+    });
 }
 
 // 保存设置
