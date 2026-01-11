@@ -491,3 +491,148 @@ body {
 .history-list::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #ced4da 0%, #adb5bd 100%);
 }
+
+/* 深色模式样式 */
+body.dark-mode {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .container {
+    background-color: #1a1a1a;
+}
+
+body.dark-mode .input-section #text-input {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #e0e0e0;
+}
+
+body.dark-mode .input-section #text-input:focus {
+    border-color: #4285f4;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+}
+
+body.dark-mode .qr-section {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+body.dark-mode #qrcode img {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+body.dark-mode .placeholder-icon,
+body.dark-mode .placeholder-text {
+    color: #666;
+}
+
+body.dark-mode .bottom-bar {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    border-top-color: #404040;
+}
+
+body.dark-mode .settings-btn,
+body.dark-mode .history-btn {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    color: #999;
+}
+
+body.dark-mode .settings-btn:hover,
+body.dark-mode .history-btn:hover {
+    background: linear-gradient(135deg, #404040 0%, #353535 100%);
+    color: #e0e0e0;
+}
+
+body.dark-mode .history-btn.active {
+    background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+    color: white;
+}
+
+body.dark-mode .history-section {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    border-color: #404040;
+}
+
+body.dark-mode .history-header {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    border-bottom-color: #404040;
+}
+
+body.dark-mode .history-header h3 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .close-history-btn {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    color: #999;
+}
+
+body.dark-mode .close-history-btn:hover {
+    background: linear-gradient(135deg, #fee 0%, #fcc 100%);
+    color: #dc3545;
+}
+
+body.dark-mode .history-item {
+    border-bottom-color: #404040;
+}
+
+body.dark-mode .history-item:hover {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+}
+
+body.dark-mode .history-item:active {
+    background: linear-gradient(135deg, #252525 0%, #1f1f1f 100%);
+}
+
+body.dark-mode .history-item-text {
+    color: #e0e0e0;
+}
+
+body.dark-mode .history-item-time {
+    color: #666;
+}
+
+body.dark-mode .history-item-delete {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    color: #666;
+}
+
+body.dark-mode .history-item-delete:hover {
+    background: linear-gradient(135deg, #fee 0%, #fcc 100%);
+    color: #dc3545;
+}
+
+body.dark-mode .history-empty {
+    color: #666;
+}
+
+body.dark-mode .history-footer {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    border-top-color: #404040;
+}
+
+body.dark-mode .clear-history-btn {
+    background: linear-gradient(135deg, #2d2d2d 0%, #252525 100%);
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+body.dark-mode .clear-history-btn:hover {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+}
+
+/* 深色模式滚动条 */
+body.dark-mode .history-list::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+body.dark-mode .history-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #404040 0%, #353535 100%);
+}
+
+body.dark-mode .history-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #505050 0%, #404040 100%);
+}

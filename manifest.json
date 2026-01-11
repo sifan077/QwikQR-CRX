@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "QwikQR",
     "description": "A chrome extension to generate and scan QR codes",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "icons": {
         "16": "logo/logo-16.png",
         "48": "logo/logo-48.png",

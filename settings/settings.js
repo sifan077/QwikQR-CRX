@@ -7,7 +7,8 @@ const defaultSettings = {
     defaultAction: 'none',
     autoDetectUrl: true,
     logoImage: null,
-    logoSize: 20
+    logoSize: 20,
+    darkMode: false
 };
 
 // 当前设置
@@ -24,6 +25,7 @@ const elements = {
     qrCorrectLevel: document.getElementById('qr-correct-level'),
     defaultAction: document.getElementById('default-action'),
     autoDetectUrl: document.getElementById('auto-detect-url'),
+    darkMode: document.getElementById('dark-mode'),
     logoUpload: document.getElementById('logo-upload'),
     logoUploadBtn: document.getElementById('logo-upload-btn'),
     logoPreview: document.getElementById('logo-preview'),
@@ -80,6 +82,9 @@ function updateUI() {
     elements.defaultAction.value = currentSettings.defaultAction;
     
     elements.autoDetectUrl.checked = currentSettings.autoDetectUrl;
+    
+    elements.darkMode.checked = currentSettings.darkMode;
+    applyDarkMode(currentSettings.darkMode);
 
     // Logo 图片
     if (currentSettings.logoImage) {
@@ -93,6 +98,15 @@ function updateUI() {
         elements.logoPreview.style.display = 'none';
         elements.logoUploadBtn.style.display = 'flex';
         elements.logoSizeSetting.style.display = 'none';
+    }
+}
+
+// 应用深色模式
+function applyDarkMode(enabled) {
+    if (enabled) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
     }
 }
 
@@ -156,6 +170,11 @@ function setupEventListeners() {
         elements.logoSizeValue.textContent = this.value + '%';
     });
 
+    // 深色模式开关
+    elements.darkMode.addEventListener('change', function() {
+        applyDarkMode(this.checked);
+    });
+
     // 保存按钮
     elements.saveBtn.addEventListener('click', saveSettings);
 
@@ -182,6 +201,7 @@ function saveSettings() {
         qrCorrectLevel: elements.qrCorrectLevel.value,
         defaultAction: elements.defaultAction.value,
         autoDetectUrl: elements.autoDetectUrl.checked,
+        darkMode: elements.darkMode.checked,
         logoImage: currentSettings.logoImage,
         logoSize: parseInt(elements.logoSize.value)
     };

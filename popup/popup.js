@@ -23,11 +23,21 @@ document.addEventListener('DOMContentLoaded', function() {
         qrCorrectLevel: 'H',
         defaultAction: 'none',
         logoImage: null,
-        logoSize: 20
+        logoSize: 20,
+        darkMode: false
     };
 
     // 当前设置
     let settings = { ...defaultSettings };
+
+    // 应用深色模式
+    function applyDarkMode(enabled) {
+        if (enabled) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    }
 
     // 初始化显示占位符
     showPlaceholder();
@@ -72,6 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.qrSettings) {
             settings = { ...defaultSettings, ...result.qrSettings };
         }
+        
+        // 应用深色模式
+        applyDarkMode(settings.darkMode);
         
         // 首先检查是否有从右键菜单传递的内容
         chrome.storage.local.get(['contextMenuContent'], function(result) {
