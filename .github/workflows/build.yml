@@ -1,0 +1,87 @@
+name: Build CRX
+
+on:
+  # 当推送带有 v 前缀的标签时触发（如 v0.0.4）
+  push:
+    tags:
+      - 'v*'
+  # 允许手动触发构建
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build CRX Extension
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      # 2. 获取版本号
+      - name: Get version from tag
+        id: get_version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="dev-${GITHUB_SHA::7}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      # 3. 打包扩展文件
+      - name: Pack extension files
+        run: |
+          zip -r qwikqr-${{ steps.get_version.outputs.version }}.crx \
+            manifest.json \
+            foreground.js \
+            service-worker.js \
+            service-worker-utils.js \
+            popup/ \
+            settings/ \
+            logo/ \
+            -x "*.git*" \
+            -x "*.md" \
+            -x "LICENSE"
+      
+      # 4. 生成 SHA256 校验和
+      - name: Generate SHA256 checksum
+        run: |
+          sha256sum qwikqr-${{ steps.get_version.outputs.version }}.crx > qwikqr-${{ steps.get_version.outputs.version }}.crx.sha256
+      
+      # 5. 上传构建产物（手动触发时）
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: github.event_name == 'workflow_dispatch'
+        with:
+          name: qwikqr-${{ steps.get_version.outputs.version }}
+          path: |
+            qwikqr-${{ steps.get_version.outputs.version }}.crx
+            qwikqr-${{ steps.get_version.outputs.version }}.crx.sha256
+      
+      # 6. 创建 Release（仅在标签触发时）
+      - name: Create Release
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            qwikqr-${{ steps.get_version.outputs.version }}.crx
+            qwikqr-${{ steps.get_version.outputs.version }}.crx.sha256
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 📦 下载
+            
+            - **CRX 文件**: qwikqr-${{ steps.get_version.outputs.version }}.crx
+            - **校验和**: qwikqr-${{ steps.get_version.outputs.version }}.crx.sha256
+            
+            ## 📥 安装方法
+            
+            1. 下载 CRX 文件
+            2. 打开浏览器扩展程序页面：`chrome://extensions`
+            3. 开启"开发者模式"
+            4. 将 CRX 文件拖拽到扩展程序页面即可安装
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
