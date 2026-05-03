@@ -18,6 +18,7 @@
         "contextMenus",
         "storage",
         "clipboardWrite",
+        "clipboardRead",
         "scripting"
     ],
     "host_permissions": [
