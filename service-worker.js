@@ -13,25 +13,28 @@ importScripts('service-worker-utils.js')
 
 // 创建右键菜单项
 chrome.runtime.onInstalled.addListener(() => {
-  // 创建右键菜单项 - 用于选中的文本
-  chrome.contextMenus.create({
-    id: 'generateQRFromSelection',
-    title: '生成二维码',
-    contexts: ['selection', 'link']
-  });
-  
-  // 创建右键菜单项 - 用于识别图片中的二维码
-  chrome.contextMenus.create({
-    id: 'decodeQRFromImage',
-    title: '识别二维码',
-    contexts: ['image']
-  });
-  
-  // 创建右键菜单项 - 用于截图识别二维码
-  chrome.contextMenus.create({
-    id: 'captureAndDecodeQR',
-    title: '截图识别二维码',
-    contexts: ['all']
+  // 先清除所有已有菜单项，避免重复创建导致报错
+  chrome.contextMenus.removeAll(() => {
+    // 创建右键菜单项 - 用于选中的文本
+    chrome.contextMenus.create({
+      id: 'generateQRFromSelection',
+      title: '生成二维码',
+      contexts: ['selection', 'link']
+    });
+
+    // 创建右键菜单项 - 用于识别图片中的二维码
+    chrome.contextMenus.create({
+      id: 'decodeQRFromImage',
+      title: '识别二维码',
+      contexts: ['image']
+    });
+
+    // 创建右键菜单项 - 用于截图识别二维码
+    chrome.contextMenus.create({
+      id: 'captureAndDecodeQR',
+      title: '截图识别二维码',
+      contexts: ['all']
+    });
   });
 });
 
